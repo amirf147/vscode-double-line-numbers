@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Line Highlighting Demo</title>
+    <style>
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+        }
+        
+        pre {
+            margin: 0;
+            padding: 0;
+            counter-reset: line;
+        }
+        
+        .line {
+            position: relative;
+            display: block;
+            padding: 0 0 0 3em;
+            line-height: 1.5em;
+            white-space: pre;
+        }
+        
+        .line:before {
+            position: absolute;
+            left: 0;
+            width: 2.5em;
+            text-align: right;
+            color: #858585;
+            content: counter(line);
+            counter-increment: line;
+            padding-right: 0.5em;
+        }
+        
+        .line.current {
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><defs><pattern id="checker" width="20" height="20" patternUnits="userSpaceOnUse"><rect width="10" height="10" fill="%23333333"/><rect x="10" y="10" width="10" height="10" fill="%23333333"/></pattern></defs><rect width="100%" height="100%" fill="url(%23checker)" opacity="0.3"/><text x="50%" y="50%" font-family="monospace" font-size="12" text-anchor="middle" dominant-baseline="middle" fill="%23888888">Line</text></svg>');
+            background-repeat: no-repeat;
+            background-size: cover;
+        }
+        
+        .controls {
+            margin-bottom: 20px;
+        }
+        
+        button {
+            background-color: #0e639c;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            margin-right: 10px;
+            cursor: pointer;
+            border-radius: 2px;
+        }
+        
+        button:hover {
+            background-color: #1177bb;
+        }
+        
+        .settings {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #252526;
+            border-radius: 4px;
+        }
+        
+        .settings label {
+            display: block;
+            margin-bottom: 10px;
+        }
+        
+        .settings input {
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Line Highlighting Demo</h1>
+    <p>This demonstrates how the line highlighting with embedded line numbers would work in VS Code.</p>
+    
+    <div class="controls">
+        <button id="toggleHighlight">Toggle Highlighting</button>
+        <button id="prevLine">Previous Line</button>
+        <button id="nextLine">Next Line</button>
+    </div>
+    
+    <div class="settings">
+        <h3>Settings</h3>
+        <label>
+            Pattern Opacity:
+            <input type="range" id="opacitySlider" min="0" max="1" step="0.1" value="0.3">
+            <span id="opacityValue">0.3</span>
+        </label>
+        <label>
+            Show Line Number:
+            <input type="checkbox" id="showLineNumber" checked>
+        </label>
+    </div>
+    
+    <pre id="codeBlock">
+<span class="line">import * as vscode from 'vscode';</span>
+<span class="line"></span>
+<span class="line">/**</span>
+<span class="line"> * Manages the highlighting of the current line with embedded line numbers</span>
+<span class="line"> */</span>
+<span class="line">export class LineHighlightManager {</span>
+<span class="line">  private currentEditor: vscode.TextEditor | undefined;</span>
+<span class="line">  private currentLineDecoration: vscode.TextEditorDecorationType | undefined;</span>
+<span class="line">  private disposables: vscode.Disposable[] = [];</span>
+<span class="line"></span>
+<span class="line">  /**</span>
+<span class="line">   * Constructor for LineHighlightManager</span>
+<span class="line">   */</span>
+<span class="line">  constructor() {</span>
+<span class="line">    // Register event handlers</span>
+<span class="line">    this.disposables.push(</span>
+<span class="line">      vscode.window.onDidChangeTextEditorSelection(this.updateHighlight.bind(this)),</span>
+<span class="line">      vscode.window.onDidChangeActiveTextEditor(editor => {</span>
+<span class="line">        this.currentEditor = editor;</span>
+<span class="line">        if (editor) {</span>
+<span class="line">          this.updateHighlight({ textEditor: editor, selections: editor.selections });</span>
+<span class="line">        }</span>
+<span class="line">      })</span>
+<span class="line">    );</span>
+<span class="line">  }</span>
+<span class="line"></span>
+<span class="line">  /**</span>
+<span class="line">   * Creates an SVG background with the line number embedded in a pattern</span>
+<span class="line">   * @param lineNumber The line number to display in the background</span>
+<span class="line">   * @returns A data URI containing the SVG</span>
+<span class="line">   */</span>
+<span class="line">  private createLineNumberBackground(lineNumber: number): string {</span>
+<span class="line">    // Get theme colors for better integration</span>
+<span class="line">    const colorTheme = vscode.window.activeColorTheme;</span>
+<span class="line">    const isDark = colorTheme.kind === vscode.ColorThemeKind.Dark;</span>
+<span class="line">    </span>
+<span class="line">    // Choose colors based on theme</span>
+<span class="line">    const patternColor = isDark ? '#333333' : '#f0f0f0';</span>
+<span class="line">    const textColor = isDark ? '#888888' : '#888888';</span>
+<span class="line">    </span>
+<span class="line">    // Create an SVG with the line number embedded in a pattern</span>
+<span class="line">    const svgContent = `</span>
+<span class="line">      &lt;svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"&gt;</span>
+<span class="line">        &lt;defs&gt;</span>
+<span class="line">          &lt;pattern id="checker" width="20" height="20" patternUnits="userSpaceOnUse"&gt;</span>
+<span class="line">            &lt;rect width="10" height="10" fill="${patternColor}"/&gt;</span>
+<span class="line">            &lt;rect x="10" y="10" width="10" height="10" fill="${patternColor}"/&gt;</span>
+<span class="line">          &lt;/pattern&gt;</span>
+<span class="line">        &lt;/defs&gt;</span>
+<span class="line">        &lt;rect width="100%" height="100%" fill="url(#checker)" opacity="0.3"/&gt;</span>
+<span class="line">        &lt;text x="50%" y="50%" font-family="monospace" font-size="12" text-anchor="middle" dominant-baseline="middle" fill="${textColor}"&gt;</span>
+<span class="line">          Line ${lineNumber}</span>
+<span class="line">        &lt;/text&gt;</span>
+<span class="line">      &lt;/svg&gt;</span>
+<span class="line">    `;</span>
+<span class="line">    </span>
+<span class="line">    // Convert to data URI</span>
+<span class="line">    const encodedSvg = encodeURIComponent(svgContent);</span>
+<span class="line">    return `data:image/svg+xml;utf8,${encodedSvg}`;</span>
+<span class="line">  }</span>
+<span class="line">}</span>
+    </pre>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const lines = document.querySelectorAll('.line');
+            let currentLineIndex = 0;
+            let highlightEnabled = true;
+            
+            // Set initial current line
+            updateCurrentLine();
+            
+            // Toggle highlighting
+            document.getElementById('toggleHighlight').addEventListener('click', function() {
+                highlightEnabled = !highlightEnabled;
+                updateCurrentLine();
+                this.textContent = highlightEnabled ? 'Toggle Highlighting' : 'Enable Highlighting';
+            });
+            
+            // Navigate lines
+            document.getElementById('prevLine').addEventListener('click', function() {
+                if (currentLineIndex > 0) {
+                    currentLineIndex--;
+                    updateCurrentLine();
+                }
+            });
+            
+            document.getElementById('nextLine').addEventListener('click', function() {
+                if (currentLineIndex < lines.length - 1) {
+                    currentLineIndex++;
+                    updateCurrentLine();
+                }
+            });
+            
+            // Update opacity
+            const opacitySlider = document.getElementById('opacitySlider');
+            const opacityValue = document.getElementById('opacityValue');
+            
+            opacitySlider.addEventListener('input', function() {
+                opacityValue.textContent = this.value;
+                updateSvgBackground();
+            });
+            
+            // Toggle line number
+            document.getElementById('showLineNumber').addEventListener('change', function() {
+                updateSvgBackground();
+            });
+            
+            function updateCurrentLine() {
+                // Remove current class from all lines
+                lines.forEach(line => line.classList.remove('current'));
+                
+                // Add current class to current line if highlighting is enabled
+                if (highlightEnabled) {
+                    lines[currentLineIndex].classList.add('current');
+                    updateSvgBackground();
+                }
+            }
+            
+            function updateSvgBackground() {
+                if (!highlightEnabled) return;
+                
+                const opacity = opacitySlider.value;
+                const showLineNumber = document.getElementById('showLineNumber').checked;
+                const lineNumber = currentLineIndex + 1;
+                
+                const patternColor = '#333333';
+                const textColor = '#ffffff'; // Higher contrast text color
+                const textBgColor = '#555555'; // Background for text
+                const patternWidth = 70; // 7 blocks of 10px each
+                const patternHeight = 20;
+                const blockSize = 10;
+                
+                let svgContent = `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><defs><pattern id="checker" width="${patternWidth}" height="${patternHeight}" patternUnits="userSpaceOnUse">`;
+                
+                svgContent += `
+                    <rect width="${blockSize}" height="${blockSize}" fill="${patternColor}"/>
+                    <rect x="${blockSize}" y="${blockSize}" width="${blockSize}" height="${blockSize}" fill="${patternColor}"/>
+                    <rect x="${blockSize * 2}" y="0" width="${blockSize}" height="${blockSize}" fill="${patternColor}"/>
+                    <rect x="${blockSize * 3}" y="${blockSize}" width="${blockSize}" height="${blockSize}" fill="${patternColor}"/>
+                    <rect x="${blockSize * 4}" y="0" width="${blockSize}" height="${blockSize}" fill="${patternColor}"/>
+                    <rect x="${blockSize * 5}" y="${blockSize}" width="${blockSize}" height="${blockSize}" fill="${patternColor}"/>
+                    <rect x="${blockSize * 6}" y="0" width="${blockSize}" height="${blockSize}" fill="${patternColor}"/>
+                    
+                    <!-- Top row number (7th block) with background -->
+                    <rect x="${blockSize * 6}" y="0" width="${blockSize}" height="6" fill="${textBgColor}"/>
+                    <text x="${blockSize * 6 + blockSize/2}" y="5" font-family="monospace" font-size="6" text-anchor="middle" font-weight="bold" fill="${textColor}">${lineNumber}</text>
+                    
+                    <!-- Bottom row number (1st block) with background -->
+                    <rect x="0" y="${blockSize + 4}" width="${blockSize}" height="6" fill="${textBgColor}"/>
+                    <text x="${blockSize/2}" y="${blockSize + 9}" font-family="monospace" font-size="6" text-anchor="middle" font-weight="bold" fill="${textColor}">${lineNumber}</text>
+                `;
+                
+                svgContent += `</pattern></defs><rect width="100%" height="100%" fill="url(#checker)" opacity="${opacity}"/>`;
+                
+                if (showLineNumber) {
+                    svgContent += `<text x="50%" y="50%" font-family="monospace" font-size="12" text-anchor="middle" dominant-baseline="middle" fill="${textColor}" opacity="0.3">Line ${lineNumber}</text>`;
+                }
+                
+                svgContent += `</svg>`;
+                
+                const encodedSvg = encodeURIComponent(svgContent);
+                const dataUri = `data:image/svg+xml;utf8,${encodedSvg}`;
+                
+                document.querySelector('.line.current').style.backgroundImage = `url('${dataUri}')`;
+            }
+        });
+    </script>
+</body>
+</html>

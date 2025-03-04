@@ -2,6 +2,7 @@
 // Import the module and reference it with the alias vscode in your code below
 
 import * as vscode from "vscode";
+import { LineHighlightManager } from "./lineHighlighter";
 
 const names: { [key: string]: string } = {
   abs_rel: "Absolute + Relative",
@@ -266,6 +267,32 @@ function getSvgUri(num: number) {
  */
 export function activate(context: vscode.ExtensionContext) {
   const mgr = new LineNumberManager(context);
+  const lineHighlightMgr = new LineHighlightManager();
+  
+  // Add the line highlight manager to the disposables
+  context.subscriptions.push(lineHighlightMgr);
+
+  // Register toggle command for line highlighting
+  const toggleHighlightDisposable = vscode.commands.registerCommand(
+    "vscode-double-line-numbers.toggleLineHighlight",
+    () => {
+      const config = vscode.workspace.getConfiguration("vscode-double-line-numbers");
+      const isEnabled = config.get("enableLineHighlight", true);
+      
+      // Toggle the setting
+      config.update(
+        "enableLineHighlight",
+        !isEnabled,
+        vscode.ConfigurationTarget.Global
+      );
+      
+      vscode.window.showInformationMessage(
+        `Line highlighting ${!isEnabled ? "enabled" : "disabled"}!`
+      );
+    }
+  );
+  
+  context.subscriptions.push(toggleHighlightDisposable);
 
   registerCommands(mgr);
 

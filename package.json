@@ -22,6 +22,23 @@
   "contributes": {
     "configuration": {
       "properties": {
+        "vscode-double-line-numbers.enableLineHighlight": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Enable dynamic line highlighting with embedded line numbers in the background"
+        },
+        "vscode-double-line-numbers.highlight.patternOpacity": {
+          "type": "number",
+          "default": 0.3,
+          "minimum": 0,
+          "maximum": 1,
+          "markdownDescription": "Opacity of the background pattern (0-1)"
+        },
+        "vscode-double-line-numbers.highlight.showLineNumber": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Show the line number in the background pattern"
+        },
         "vscode-double-line-numbers.font.color": {
           "type": "string",
           "default": "#858585",
@@ -53,6 +70,10 @@
       {
         "command": "vscode-double-line-numbers.helloWorld",
         "title": "Hello World"
+      },
+      {
+        "command": "vscode-double-line-numbers.toggleLineHighlight",
+        "title": "Double Line Numbers: Toggle Line Highlighting"
       },
       {
         "command": "vscode-double-line-numbers.abs_rel",

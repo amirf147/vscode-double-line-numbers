@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Line Highlighting Demo Screenshot</title>
+    <style>
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .editor-container {
+            width: 800px;
+            height: 500px;
+            border: 1px solid #555;
+            position: relative;
+            overflow: hidden;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .gutter {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 50px;
+            height: 100%;
+            background-color: #252526;
+            border-right: 1px solid #444;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+        
+        .line-number {
+            padding: 0 5px;
+            color: #858585;
+        }
+        
+        .code-content {
+            margin-left: 50px;
+            padding: 0 10px;
+        }
+        
+        .line {
+            height: 21px;
+            white-space: pre;
+        }
+        
+        /* Line highlighting patterns with different relative numbers */
+        .line.current-2 {
+            background-image: url('data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2270%22%20height%3D%2220%22%3E%3Crect%20width%3D%2270%22%20height%3D%2220%22%20fill%3D%22%23000000%22%2F%3E%3Ctext%20x%3D%2265%22%20y%3D%225%22%20font-family%3D%22monospace%22%20font-size%3D%229px%22%20text-anchor%3D%22middle%22%20font-weight%3D%22normal%22%20fill%3D%22%23ffffff%22%20style%3D%22stroke%3A%20none%3B%22%3E-2%3C%2Ftext%3E%3C%2Fsvg%3E');
+            background-repeat: repeat-x;
+        }
+        
+        .line.current-1 {
+            background-image: url('data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2270%22%20height%3D%2220%22%3E%3Crect%20width%3D%2270%22%20height%3D%2220%22%20fill%3D%22%23000000%22%2F%3E%3Ctext%20x%3D%2265%22%20y%3D%225%22%20font-family%3D%22monospace%22%20font-size%3D%229px%22%20text-anchor%3D%22middle%22%20font-weight%3D%22normal%22%20fill%3D%22%23ffffff%22%20style%3D%22stroke%3A%20none%3B%22%3E-1%3C%2Ftext%3E%3C%2Fsvg%3E');
+            background-repeat: repeat-x;
+        }
+        
+        .line.current0 {
+            background-image: url('data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2270%22%20height%3D%2220%22%3E%3Crect%20width%3D%2270%22%20height%3D%2220%22%20fill%3D%22%23000000%22%2F%3E%3Ctext%20x%3D%2265%22%20y%3D%225%22%20font-family%3D%22monospace%22%20font-size%3D%229px%22%20text-anchor%3D%22middle%22%20font-weight%3D%22normal%22%20fill%3D%22%23ffffff%22%20style%3D%22stroke%3A%20none%3B%22%3E0%3C%2Ftext%3E%3C%2Fsvg%3E');
+            background-repeat: repeat-x;
+        }
+        
+        .line.current1 {
+            background-image: url('data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2270%22%20height%3D%2220%22%3E%3Crect%20width%3D%2270%22%20height%3D%2220%22%20fill%3D%22%23000000%22%2F%3E%3Ctext%20x%3D%2265%22%20y%3D%225%22%20font-family%3D%22monospace%22%20font-size%3D%229px%22%20text-anchor%3D%22middle%22%20font-weight%3D%22normal%22%20fill%3D%22%23ffffff%22%20style%3D%22stroke%3A%20none%3B%22%3E1%3C%2Ftext%3E%3C%2Fsvg%3E');
+            background-repeat: repeat-x;
+        }
+        
+        .line.current2 {
+            background-image: url('data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2270%22%20height%3D%2220%22%3E%3Crect%20width%3D%2270%22%20height%3D%2220%22%20fill%3D%22%23000000%22%2F%3E%3Ctext%20x%3D%2265%22%20y%3D%225%22%20font-family%3D%22monospace%22%20font-size%3D%229px%22%20text-anchor%3D%22middle%22%20font-weight%3D%22normal%22%20fill%3D%22%23ffffff%22%20style%3D%22stroke%3A%20none%3B%22%3E2%3C%2Ftext%3E%3C%2Fsvg%3E');
+            background-repeat: repeat-x;
+        }
+        
+        .keyword {
+            color: #569cd6;
+        }
+        
+        .function {
+            color: #dcdcaa;
+        }
+        
+        .string {
+            color: #ce9178;
+        }
+        
+        .comment {
+            color: #6a9955;
+        }
+        
+        .type {
+            color: #4ec9b0;
+        }
+        
+        .caption {
+            margin-top: 20px;
+            font-size: 16px;
+            text-align: center;
+            max-width: 800px;
+        }
+    </style>
+</head>
+<body>
+    <div class="editor-container">
+        <div class="gutter">
+            <div class="line-number">5</div>
+            <div class="line-number">6</div>
+            <div class="line-number">7</div>
+            <div class="line-number">8</div>
+            <div class="line-number">9</div>
+            <div class="line-number">10</div>
+            <div class="line-number">11</div>
+            <div class="line-number">12</div>
+            <div class="line-number">13</div>
+            <div class="line-number">14</div>
+            <div class="line-number">15</div>
+        </div>
+        <div class="code-content">
+            <div class="line"><span class="comment">/**</span></div>
+            <div class="line"><span class="comment"> * Creates an SVG background with the line number embedded in a pattern</span></div>
+            <div class="line current-2"><span class="comment"> * @param lineNumber The line number to display in the background</span></div>
+            <div class="line current-1"><span class="comment"> * @returns A data URI containing the SVG</span></div>
+            <div class="line current0"><span class="comment"> */</span></div>
+            <div class="line current1"><span class="keyword">private</span> <span class="function">createLineNumberBackground</span>(<span class="parameter">lineNumber</span>: <span class="type">number</span>): <span class="type">string</span> {</div>
+            <div class="line current2">  <span class="comment">// Get theme colors for better integration</span></div>
+            <div class="line">  <span class="keyword">const</span> colorTheme = vscode.window.activeColorTheme;</div>
+            <div class="line">  <span class="keyword">const</span> isDark = colorTheme.kind === vscode.ColorThemeKind.Dark;</div>
+            <div class="line">  </div>
+            <div class="line">  <span class="comment">// Get configuration options</span></div>
+        </div>
+    </div>
+    
+    <div class="caption">
+        <strong>Dynamic Line Highlighting with Embedded Numbers</strong> - The current line and surrounding lines are highlighted with a solid black background containing relative line numbers (-2 to +2). This helps you keep track of your position without looking at the gutter line numbers. The pattern repeats 5 times horizontally across each line.
+    </div>
+</body>
+</html>

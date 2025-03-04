@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Line Pattern Demo - Larger Numbers</title>
+    <style>
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        h1 {
+            margin-bottom: 30px;
+        }
+        
+        .demo-container {
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+            align-items: center;
+        }
+        
+        .pattern-demo {
+            width: 350px; /* 5 repetitions of 70px */
+            height: 200px; /* 10x scale of original 20px */
+            border: 1px solid #555;
+            background-repeat: repeat;
+            margin-bottom: 20px;
+        }
+        
+        .pattern-info {
+            background-color: #252526;
+            padding: 15px;
+            border-radius: 5px;
+            max-width: 700px;
+        }
+        
+        .scale-controls {
+            margin-bottom: 20px;
+        }
+        
+        .line-controls {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        button {
+            background-color: #0e639c;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            margin: 0 5px;
+            cursor: pointer;
+            border-radius: 2px;
+        }
+        
+        button:hover {
+            background-color: #1177bb;
+        }
+        
+        input {
+            width: 60px;
+            padding: 5px;
+            background-color: #3c3c3c;
+            color: white;
+            border: 1px solid #555;
+        }
+    </style>
+</head>
+<body>
+    <h1>Line Pattern Demo - Larger Numbers</h1>
+    
+    <div class="scale-controls">
+        <button id="scale1x">1x (Actual Size)</button>
+        <button id="scale5x">5x</button>
+        <button id="scale10x" class="active">10x</button>
+        <button id="scale20x">20x</button>
+    </div>
+    
+    <div class="line-controls">
+        <label for="lineNumber">Current Line:</label>
+        <input type="number" id="lineNumber" value="-8" min="-9" max="9">
+        <button id="updateLine">Update</button>
+    </div>
+    
+    <div class="demo-container">
+        <div class="pattern-demo" id="patternDemo"></div>
+        
+        <div class="pattern-info">
+            <h3>Pattern Information:</h3>
+            <p>This is a scaled-up version of the line pattern with larger numbers.</p>
+            <p>The pattern shows relative line numbers between -9 and 9.</p>
+            <ul>
+                <li><strong>Top row only:</strong> Larger number (3x previous size) at the top of the 7th block</li>
+            </ul>
+            <p>The current relative line number shown is: <span id="currentLineNumberDisplay">-8</span></p>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let lineNumber = -8; // Default relative line number
+            document.getElementById('currentLineNumberDisplay').textContent = lineNumber;
+            
+            // Function to create and update the pattern
+            function updatePattern(scale) {
+                const patternDemo = document.getElementById('patternDemo');
+                
+                // Set the scale
+                const blockSize = 10 * scale;
+                const patternWidth = 70 * scale;
+                const patternHeight = 20 * scale;
+                
+                // Colors - solid black background with white numbers
+                const patternColor = '#000000';
+                const textColor = '#ffffff';
+                
+                // Create SVG
+                const svgContent = `
+                <svg xmlns="http://www.w3.org/2000/svg" width="${patternWidth}px" height="${patternHeight}px">
+                    <!-- Solid black background -->
+                    <rect width="${patternWidth}" height="${patternHeight}" fill="${patternColor}"/>
+                    
+                    <!-- Top row number (7th block) - larger white text (3x previous size) -->
+                    <text x="${blockSize * 6 + blockSize/2}" y="${5 * scale}" font-family="monospace" font-size="${9 * scale}px" text-anchor="middle" font-weight="normal" fill="${textColor}" style="stroke: none;">${lineNumber}</text>
+                </svg>
+                `;
+                
+                // Convert to data URI
+                const encodedSvg = encodeURIComponent(svgContent);
+                const dataUri = `data:image/svg+xml;utf8,${encodedSvg}`;
+                
+                // Apply to demo div
+                patternDemo.style.backgroundImage = `url('${dataUri}')`;
+                patternDemo.style.width = `${patternWidth * 5}px`; // Show 5 repetitions
+                patternDemo.style.height = `${patternHeight}px`;
+            }
+            
+            // Initialize with 10x scale
+            updatePattern(10);
+            
+            // Scale buttons
+            document.getElementById('scale1x').addEventListener('click', function() {
+                document.querySelectorAll('.scale-controls button').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                updatePattern(1);
+            });
+            document.getElementById('scale5x').addEventListener('click', function() {
+                document.querySelectorAll('.scale-controls button').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                updatePattern(5);
+            });
+            document.getElementById('scale10x').addEventListener('click', function() {
+                document.querySelectorAll('.scale-controls button').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                updatePattern(10);
+            });
+            document.getElementById('scale20x').addEventListener('click', function() {
+                document.querySelectorAll('.scale-controls button').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                updatePattern(20);
+            });
+            
+            // Line number update
+            document.getElementById('updateLine').addEventListener('click', function() {
+                const input = document.getElementById('lineNumber');
+                lineNumber = parseInt(input.value, 10);
+                
+                // Validate range -9 to 9
+                if (lineNumber < -9) lineNumber = -9;
+                if (lineNumber > 9) lineNumber = 9;
+                
+                input.value = lineNumber;
+                document.getElementById('currentLineNumberDisplay').textContent = lineNumber;
+                
+                // Update pattern with current scale
+                const activeButton = document.querySelector('.scale-controls button.active') || document.getElementById('scale10x');
+                const scale = parseInt(activeButton.id.replace('scale', '').replace('x', ''), 10);
+                updatePattern(scale);
+            });
+        });
+    </script>
+</body>
+</html>
